@@ -1,0 +1,252 @@
+<html>
+<head>
+	<style>
+		@import url('http://fonts.googleapis.com/css?family=Open+Sans:700');
+		@import url('http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css');
+
+		*, *:before, *:after {
+		  margin: 0;
+		  padding: 0;
+		  box-sizing: border-box;
+		}
+
+		.btn {
+		  display: inline-block;
+		  min-width: 180px;
+		  margin: 15px 5px;
+		  padding: 10px 20px 12px;
+		  font: 700 12px/1 'Open Sans', sans-serif;
+		  border-radius: 3px;
+		  box-shadow: inset 0 -1px 0 1px rgba(0,0,0,.1), inset 0 -10px 20px rgba(0,0,0,.1);
+		  cursor: pointer;
+		}
+
+		.btn.pri {
+		  color: #fff;
+		  text-shadow: 0 -1px 0 rgba(0,0,0,.2);
+		}
+
+		.green .btn.pri { background: #6b6 }
+		.red .btn.pri { background: #d33 }
+		.green .btn.pri.ico:before { content: '\f00c' }
+		.red .btn.pri.ico:before { content: '\f014' }
+		.green .btn.pri:hover { background: #5a5 }
+		.red .btn.pri:hover { background: #c22 }
+
+		.btn.pri.ico {
+		  position: relative;
+		  padding-left: 40px;
+		  text-align: left;
+		}
+
+		.btn.pri.ico:before {
+		  position: absolute;
+		  top: 0;
+		  left: 0;
+		  display: block;
+		  width: 40px;
+		  padding: 10px 0 12px;
+		  font-family: fontawesome;
+		  text-align: center;
+		  border-radius: 3px 0 0 3px;
+		  background: rgba(0,0,0,.15);
+		}
+
+
+		.border{
+			position: relative;
+			border: 1px solid #bbb;
+			margin: 10px 0px;
+			padding: 5px 5px 0px 5px;
+			background-color: #ddd;
+			/* -moz-box-shadow: inset 0 1px 1px #eeeeee; */
+			/* -ms-box-shadow: inset 0 1px 1px #eeeeee; */
+			/* -o-box-shadow: inset 0 1px 1px #eeeeee; */
+			/* -webkit-box-shadow: inset 0 1px 1px #EEE; */
+			box-shadow: inset 0 1px 1px #EEE;
+			/* -moz-border-radius: 4px; */
+			/* -webkit-border-radius: 4px; */
+			border-radius: 4px;
+		}
+
+		.border:before, .border:after{
+			z-index: -1;
+			position: absolute;
+			content: "";
+			bottom: 15px;
+			left: 10px;
+			width: 50%;
+			top: 50%;
+			max-width: 300px;
+			background: rgba(0, 0, 0, .7);
+			/* -webkit-box-shadow: 0 15px 10px rgba(0, 0, 0, .7); */
+			/* -moz-box-shadow: 0 15px 10px rgba(0, 0, 0, .7); */
+			box-shadow: 0 15px 10px rgba(0, 0, 0, .7);
+			/* -webkit-transform: rotate(-3deg); */
+			/* -moz-transform: rotate(-3deg); */
+			/* -o-transform: rotate(-3deg); */
+			/* -ms-transform: rotate(-3deg); */
+			transform: rotate(-3deg);
+		}
+
+		.border:after{
+			/* -webkit-transform: rotate(3deg); */
+			/* -moz-transform: rotate(3deg); */
+			/* -o-transform: rotate(3deg); */
+			/* -ms-transform: rotate(3deg); */
+			transform: rotate(3deg);
+			right: 10px;
+			left: auto;
+		}
+
+		.hr{
+			height: 1px; 
+			width: 100%;
+			background: -webkit-linear-gradient(left, transparent 0%, #272727 50%, transparent 100%);
+		}
+	</style>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>MessageManagement</title>
+	<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="./css/wave.css">
+
+	<script type="text/javascript">
+	var balloonArray = [];
+	var mycount;
+
+	$(document).ready(function(){
+        document.addEventListener("keydown", function(e) {
+		    if (!e) { var e = window.event; 
+		    	e.preventDefault(); // sometimes useful
+			}
+
+		    if (e.keyCode == 66) {
+		    	setAccept();
+		    }
+
+		    else if (e.keyCode == 78) {
+		    	setDeny();
+		    }
+		}, false);
+
+	});
+
+	function getData(){
+		document.getElementById("loading-div").style.visibility = "visible";
+		$.getJSON( "http://140.114.67.175:81/msgManagement2.php", function( data ) { //getJson from API
+		  $.each(data, function(index, item){
+		  		balloonArray.push({id:item.id ,name:item.name ,message:item.message});  
+            });
+		}).always(function() { //store the output to array
+			if(balloonArray.length != 0){
+				showBalloon();
+			}
+			sleep(1000);
+			document.getElementById("loading-div").style.visibility = "hidden";
+  		});
+	}
+	function autoLoading(){
+		if(balloonArray.length == 0){
+			getData();
+		}
+	}
+
+	function showBalloon(){
+		if(balloonArray.length!=0){
+			document.getElementById("id").innerText = balloonArray[0].id;
+			document.getElementById("name").innerText = balloonArray[0].name;
+			document.getElementById("message").innerText = balloonArray[0].message;
+		}
+		
+		if(balloonArray.length == 0){
+			// clearTimeout(mycount);
+			getData();
+		}
+	}
+
+	function setDeny(){
+		document.getElementById("name").innerText = "";
+		document.getElementById("message").innerText = "";
+		if(balloonArray.length != 0){
+			balloonArray.shift();
+			$("#name").hide(200);
+			$("#message").hide(200);
+			$.post( "http://140.114.67.175:81/setDeny.php", { id: document.getElementById("id").innerText
+			}).always(function() {
+				showBalloon();
+				$("#name").fadeIn(200);
+				$("#message").fadeIn(200);
+			});
+		}
+	}
+
+	function setAccept(){
+		document.getElementById("name").innerText = "";
+		document.getElementById("message").innerText = "";
+		if(balloonArray.length != 0){
+			balloonArray.shift();
+			$("#name").hide(200);
+			$("#message").hide(200);
+			$.post( "http://140.114.67.175:81/setAccept.php", { id: document.getElementById("id").innerText
+			}).always(function() {
+				showBalloon();
+				$("#name").fadeIn(200);
+				$("#message").fadeIn(200);
+			});
+		}
+	}
+
+	function sleep(milliseconds) {
+	  var start = new Date().getTime();
+	  for (var i = 0; i < 1e7; i++) {
+	    if ((new Date().getTime() - start) > milliseconds){
+	      break;
+	    }
+	  }
+	}
+
+	function initial(){
+		document.getElementById("loading-div").style.visibility = "visible";
+		$.post("http://140.114.67.175:81/clearforadmin2.php").always(function() {
+			mycount = setInterval(autoLoading, 10000);
+			getData();
+		});
+	}
+
+	</script>
+<head>
+<body onload="initial()">
+
+	<div class="border" style="margin:0px auto;width:50%;height:60%;text-align:center;margin-top:8%">
+		<span id="id" style="display:none"></span><br>
+		<br><br><br>
+		<span style="font-size:25px;letter-spacing: 2px;" id="name"></span><br>
+		<br><br><div class="hr" style="margin-top:20px ; margin-bottom:40px"></div><br><br>
+		<span style="font-size:25px;letter-spacing: 1px;width:50%;display: inline-block;" id="message"></span><br>
+  	</div>
+  	<br>
+  	<div style="text-align:center;">
+  		<div class="green" onclick="setAccept()" style="display:inline">
+			<a style="text-align:right;font-size:18px" class="btn pri ico">Accept　(B)</a>
+  		</div> 
+		<div class="red" onclick="setDeny()" style="display:inline">
+			<a style="text-align:right;font-size:18px;margin-left:30px" class="btn pri ico">Reject　(N)</a>
+  		</div>
+  	</div>
+
+
+
+  	<div id="loading-div" style="visibility:hidden">
+	  	<div style="position: absolute;top:0; left:0; height:100% ; width:100% ; background-color:black;opacity:0.4">
+	    </div>
+			<div class="sk-wave" id="loading" style="position:absolute;top:43%;left:48%;">
+	        <div class="sk-rect sk-rect1"></div>
+	        <div class="sk-rect sk-rect2"></div>
+	        <div class="sk-rect sk-rect3"></div>
+	        <div class="sk-rect sk-rect4"></div>
+	        <div class="sk-rect sk-rect5"></div>
+	   		<span style="font-size:20px;margin-left:-10px;line-height:50px;">Loading...</span>
+		</div>
+	<div>
+</body>
+</html>
